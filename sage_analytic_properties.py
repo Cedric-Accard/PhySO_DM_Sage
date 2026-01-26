@@ -3,7 +3,7 @@ from sage.all import *
 import signal
 
 """For now only works when density profiles are given, still need to implement checks for when enclosed mass profiles are given.
-It appears that Einasto profile is not working properly, need to check that later."""
+"""
 
 
 class TimeoutError(Exception):
@@ -47,12 +47,12 @@ def sage_to_python_str(expr):
         'log': 'np.log',
         'exp': 'np.exp',
         'sqrt': 'np.sqrt',
+        'arcsin': 'np.arcsin',
+        'arccos': 'np.arccos',
+        'arctan': 'np.arctan',
         'sin': 'np.sin',
         'cos': 'np.cos',
         'tan': 'np.tan',
-        'arctan': 'np.arctan',
-        'arcsin': 'np.arcsin',
-        'arccos': 'np.arccos',
         'pi': 'np.pi',
         'e^': 'np.exp',                 # Sage sometimes outputs e^x
         '^': '**',                      # Python power
@@ -205,7 +205,7 @@ profiles = {
     "pISO1": ("1 / (1 + (r/1)**2)", []),
     "Burkert": ("rho0 * Rs**3 / ((r + Rs)*(r**2 + Rs**2))", ['rho0', 'Rs']),
     "Lucky13": ("rho0 / (1 + (r/Rs))**3", ['rho0', 'Rs']),
-    # "Einasto": ("rho0 * exp(-2/alpha * ((r/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha']),
+    "Einasto": ("rho0 * exp(-2/alpha * ((r/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha']),
     "coreEinasto": ("rho0 * exp(-2/alpha * ((r/Rs + rc/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha', 'rc']),
     "DiCintio": ("rho0/((r/Rs)**alpha * (1+(r/Rs)**(1/beta))**(beta*(gamma-alpha)))", ['rho0', 'Rs', 'alpha', 'beta', 'gamma']),
     "gNFW": ("rho0 / ((r/Rs)**gamma * (1 + r/Rs)**(3-gamma))", ['rho0', 'Rs', 'gamma']),
@@ -248,19 +248,19 @@ with open("derived_profiles.py", "w") as f:
             if row['symb_condition'] and row['symb_result'] is not None:
                 prop_name = row['Property'].replace(" ", "_").replace("(", "").replace(")", "").replace(".", "").lower()
                 # Special naming for potentials
-            elif prop_name == "potential":
-                func_name = f"{name}_potential"
-            elif prop_name == "radial_velocity_dispersion":
-                func_name = f"{name}_sigma2"
-            elif prop_name == "enclosed_mass":
-                func_name = f"{name}_mass"
-            else:
-                func_name = f"{name}_{prop_name}"
+                if prop_name == "potential":
+                    func_name = f"{name}_potential"
+                elif prop_name == "radial_velocity_dispersion":
+                    func_name = f"{name}_sigma2"
+                elif prop_name == "enclosed_mass":
+                    func_name = f"{name}_mass"
+                else:
+                    func_name = f"{name}_{prop_name}"
 
-            expr_str = sage_to_python_str(row['symb_result'])
+                expr_str = sage_to_python_str(row['symb_result'])
 
-            f.write(f"def {func_name}(r, rho0, Rs, G=4.301e-6):\n")
-            f.write(f"    # {row['Property']}\n")
-            f.write(f"    return {expr_str}\n\n")
+                f.write(f"def {func_name}(r, rho0, Rs, G=4.301e-6):\n")
+                f.write(f"    # {row['Property']}\n")
+                f.write(f"    return {expr_str}\n\n")
 
 print("Done. Check 'derived_profiles.py' for usable code.")
