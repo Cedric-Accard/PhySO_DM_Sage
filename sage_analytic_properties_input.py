@@ -1,6 +1,7 @@
 import pandas as pd
 from sage.all import *
 import signal
+import re
 
 """For now only works when density profiles are given, still need to implement checks for when enclosed mass profiles are given.
 """
@@ -33,16 +34,24 @@ PROP_TIMEOUT = 10
 
 def sage_to_python_str(expr):
     """
-    Converts a Sage symbolic expression to a valid Python string usable with numpy and scipy.special. Only used in the final export step.
+    Converts a Sage symbolic expression to a valid Python string usable with numpy and scipy.special.
     """
     if expr is None:
         return "None"
 
-    # 1. Get string representation
     s = str(expr)
 
-    # 2. Map mathematical functions to numpy/scipy equivalents
-    replacements = {
+    # 1. Simple global replacements that are safe anywhere
+    simple_replacements = {
+        'pi': 'np.pi',
+        'e^': 'np.exp',   # crude, see note below
+        '^': '**',
+    }
+    for old, new in simple_replacements.items():
+        s = s.replace(old, new)
+
+    # 2. Function-name replacements, using word boundaries to avoid overlaps
+    func_map = {
         'log10': 'np.log10',
         'log': 'np.log',
         'exp': 'np.exp',
@@ -53,15 +62,13 @@ def sage_to_python_str(expr):
         'sin': 'np.sin',
         'cos': 'np.cos',
         'tan': 'np.tan',
-        'pi': 'np.pi',
-        'e^': 'np.exp',                 # Sage sometimes outputs e^x
-        '^': '**',                      # Python power
         'gamma': 'scipy.special.gamma',
-        'Ei': 'scipy.special.expi',     # Exponential integral
+        'Ei': 'scipy.special.expi',
     }
 
-    for sage_func, py_func in replacements.items():
-        s = s.replace(sage_func, py_func)
+    # Sort by decreasing length so 'arctan' is handled before 'tan'
+    for name in sorted(func_map, key=len, reverse=True):
+        s = re.sub(r'\b' + name + r'\b', func_map[name], s)
 
     return s
 
@@ -239,11 +246,7 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
             symb = False
     except Exception:
         symb = False
-    results.append({
-        'Property': 'Surface Density',
-        'symb_condition': symb,
-        'symb_result': Sigma_R
-    })
+    results.append({'Property': 'Surface Density', 'symb_condition': symb, 'symb_result': Sigma_R})
 
     # Average surface density \barΣ(<R)
     avg_Sigma_R = None
@@ -284,29 +287,32 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
 # EXECUTION
 # ==========================================
 
-profiles = {
-    "NFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**2)", ['rho0', 'Rs']),
-    "superNFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**Rational(5, 2))", ['rho0', 'Rs']),
-    "pISO": ("rho0 / (1 + (r / Rs)**2)", ['rho0', 'Rs']),
-    "pISO1": ("1 / (1 + (r/1)**2)", []),
-    "Burkert": ("rho0 * Rs**3 / ((r + Rs)*(r**2 + Rs**2))", ['rho0', 'Rs']),
-    "Lucky13": ("rho0 / (1 + (r/Rs))**3", ['rho0', 'Rs']),
-    "Einasto": ("rho0 * exp(-2/alpha * ((r/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha']),
-    "coreEinasto": ("rho0 * exp(-2/alpha * ((r/Rs + rc/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha', 'rc']),
-    "DiCintio": ("rho0/((r/Rs)**alpha * (1+(r/Rs)**(1/beta))**(beta*(gamma-alpha)))", ['rho0', 'Rs', 'alpha', 'beta', 'gamma']),
-    "gNFW": ("rho0 / ((r/Rs)**gamma * (1 + r/Rs)**(3-gamma))", ['rho0', 'Rs', 'gamma']),
-    "Dekel-Zhao": ("rho0 / ((r/Rs)**alpha * (1 + (r/Rs)**(1/2))**(7-2*alpha))", ['rho0', 'Rs', 'alpha']),
-    "Exponential": ("rho0 * exp(-r/Rs)", ['rho0', 'Rs']),
-    "Exponential1": ("9.6 * exp(-r/1.4)", []),
-    "Exponential2": ("rho0 * exp(-r/(Rs_1 + Rs_2))", ['rho0', 'Rs_1', 'Rs_2']),
-}
+input_type = 'density'  # 'density' or 'enclosed_mass
 
-# profiles = {
-#     "Plummer_M": ("M0 * r**3 / (r**2 + a**2)**(3/2)", ["M0", "a"],),
-#     "Hernquist_M": ("M * r**2 / (r + a)**2", ["M", "a"],),
-#     "BadLinearM": ("M0 * r", ["M0"],),
-#     "BadCuspM": ("M0 * r**(1/2)", ["M0"], ),
-# }
+if input_type == 'density':
+    profiles = {
+        "NFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**2)", ['rho0', 'Rs']),
+        "superNFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**Rational(5, 2))", ['rho0', 'Rs']),
+        "pISO": ("rho0 / (1 + (r / Rs)**2)", ['rho0', 'Rs']),
+        "pISO1": ("1 / (1 + (r/1)**2)", []),
+        "Burkert": ("rho0 * Rs**3 / ((r + Rs)*(r**2 + Rs**2))", ['rho0', 'Rs']),
+        "Lucky13": ("rho0 / (1 + (r/Rs))**3", ['rho0', 'Rs']),
+        "Einasto": ("rho0 * exp(-2/alpha * ((r/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha']),
+        "coreEinasto": ("rho0 * exp(-2/alpha * ((r/Rs + rc/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha', 'rc']),
+        "DiCintio": ("rho0/((r/Rs)**alpha * (1+(r/Rs)**(1/beta))**(beta*(gamma-alpha)))", ['rho0', 'Rs', 'alpha', 'beta', 'gamma']),
+        "gNFW": ("rho0 / ((r/Rs)**gamma * (1 + r/Rs)**(3-gamma))", ['rho0', 'Rs', 'gamma']),
+        "Dekel_Zhao": ("rho0 / ((r/Rs)**alpha * (1 + (r/Rs)**(1/2))**(7-2*alpha))", ['rho0', 'Rs', 'alpha']),
+        "Exponential": ("rho0 * exp(-r/Rs)", ['rho0', 'Rs']),
+        "Exponential1": ("9.6 * exp(-r/1.4)", []),
+        "Exponential2": ("rho0 * exp(-r/(Rs_1 + Rs_2))", ['rho0', 'Rs_1', 'Rs_2']),
+    }
+elif input_type == 'enclosed_mass':
+    profiles = {
+        "Plummer_M": ("M0 * r**3 / (r**2 + a**2)**(3/2)", ["M0", "a"],),
+        "Hernquist_M": ("M * r**2 / (r + a)**2", ["M", "a"],),
+        "BadLinearM": ("M0 * r", ["M0"],),
+        # "BadCuspM": ("M0 * r**(1/2)", ["M0"], ),
+    }
 
 
 print("Generating Analytical Solutions...")
@@ -315,7 +321,7 @@ summary_dict = {}   # Store just True/False for printing
 
 for name, (prof_str, const_names) in profiles.items():
     print(f"Processing {name}...")
-    df = check_analytical_properties(prof_str, const_names, input_type='density')
+    df = check_analytical_properties(prof_str, const_names, input_type=input_type)
     full_data[name] = df
     if not df.empty:
         summary_dict[name] = df.set_index('Property')['symb_condition']
