@@ -305,6 +305,7 @@ if input_type == 'density':
         "Exponential": ("rho0 * exp(-r/Rs)", ['rho0', 'Rs']),
         "Exponential1": ("9.6 * exp(-r/1.4)", []),
         "Exponential2": ("rho0 * exp(-r/(Rs_1 + Rs_2))", ['rho0', 'Rs_1', 'Rs_2']),
+        # "Test1": ("((exp((log((((((rs0/(c0/rs0))/c0)/rs0)/r)/c0))/c0))*rho0)-rho0)", ['rho0', 'rs0', 'c0']),
     }
 elif input_type == 'enclosed_mass':
     profiles = {
