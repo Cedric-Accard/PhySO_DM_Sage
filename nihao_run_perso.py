@@ -188,7 +188,7 @@ RUN_CONFIG["free_const_opti_args"] = free_const_opti_args
 # Hack here
 RUN_CONFIG["learning_config"]["batch_size"] = 100  # 20 # tmp
 
-MAX_N_EVALUATIONS = 50000 + 1  # int(2.5 * 1e5) + 1
+MAX_N_EVALUATIONS = 200 # 50000 + 1  # int(2.5 * 1e5) + 1
 # Allowed to search in an infinitely large search space, research will be stopped by MAX_N_EVALUATIONS
 N_EPOCHS = int(1e99)
 
@@ -199,8 +199,8 @@ class DummyVisualiser:
 
 
 run_logger = lambda: monitoring.RunLogger(save_path='SR.log', do_save=True)
-run_visualiser = lambda: DummyVisualiser()
-# run_visualiser = lambda: monitoring.RunVisualiser(epoch_refresh_rate=1, save_path='SR_curves.png', do_show=False, do_prints=True, do_save=True)
+# run_visualiser = lambda: DummyVisualiser()
+run_visualiser = lambda: monitoring.RunVisualiser(epoch_refresh_rate=1, save_path='SR_curves.png', do_show=False, do_prints=True, do_save=True)
 
 
 # Running SR task

@@ -1,0 +1,5 @@
+physo-venv
+sage-venv
+.vscode
+NIHAO_*
+__pycache__
