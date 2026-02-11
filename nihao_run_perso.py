@@ -188,7 +188,7 @@ RUN_CONFIG["free_const_opti_args"] = free_const_opti_args
 # Hack here
 RUN_CONFIG["learning_config"]["batch_size"] = 100  # 20 # tmp
 
-MAX_N_EVALUATIONS = 10000  # int(2.5 * 1e5) + 1
+MAX_N_EVALUATIONS = 50000 + 1  # int(2.5 * 1e5) + 1
 # Allowed to search in an infinitely large search space, research will be stopped by MAX_N_EVALUATIONS
 N_EPOCHS = int(1e99)
 

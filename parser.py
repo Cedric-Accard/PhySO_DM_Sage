@@ -110,9 +110,9 @@ class Parser:
 
 
 if __name__ == "__main__":
-
-    IN_PATH = "./SR.log"
-    OUT_PATH = "./SR.json"
+    directory = input("Enter the directory of the SR.log file: ")
+    IN_PATH = f"{directory}/SR.log"
+    OUT_PATH = f"{directory}/SR.json"
 
     parser = Parser(IN_PATH)
     parser.dump_log(OUT_PATH)

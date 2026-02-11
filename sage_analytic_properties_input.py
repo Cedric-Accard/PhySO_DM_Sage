@@ -3,8 +3,16 @@ from sage.all import *
 import signal
 import re
 
-"""For now only works when density profiles are given, still need to implement checks for when enclosed mass profiles are given.
-"""
+
+def is_symbolic(expr) -> bool:
+    if expr is None:
+        return False
+    s = str(expr)
+    if 'integrate' in s:
+        return False
+    if 'undef' in s:
+        return False
+    return True
 
 
 class TimeoutError(Exception):
@@ -62,13 +70,13 @@ def sage_to_python_str(expr):
         'sin': 'np.sin',
         'cos': 'np.cos',
         'tan': 'np.tan',
-        'gamma': 'scipy.special.gamma',
         'Ei': 'scipy.special.expi',
     }
-
     # Sort by decreasing length so 'arctan' is handled before 'tan'
     for name in sorted(func_map, key=len, reverse=True):
         s = re.sub(r'\b' + name + r'\b', func_map[name], s)
+
+    s = re.sub(r'\bgamma\s*\(', 'scipy.special.gamma(', s)
 
     return s
 
@@ -118,13 +126,6 @@ def get_average_surface_density(Sigma_R, R, Rp):
     integrand = Sigma_R.subs({R: Rp}) * Rp
     avg_Sigma = (2 * integral(integrand, Rp, 0, R) / R**2).simplify_full()
     return avg_Sigma, integrand
-
-
-@timeout(PROP_TIMEOUT)
-def get_projected_concentration(Sigma_R, avg_Sigma_R, R):
-    # c2(R) = \barΣ(<R) / Σ(R)
-    c2 = (avg_Sigma_R / Sigma_R).simplify_full()
-    return c2
 
 
 # ==========================================
@@ -178,7 +179,7 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
         results.append({'Property': 'Density', 'symb_condition': True, 'symb_result': rho})
         try:
             M_r, mass_int_expr = get_enclosed_mass(rho, r, rp)
-            symb = not str(M_r).count('integral')
+            symb = is_symbolic(M_r)
         except Exception:
             M_r = None
             symb = False
@@ -202,25 +203,12 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
     try:
         if M_r is not None:
             V_r = get_circular_velocity(M_r, r, G)
-            symb = not str(M_r).count('integral')
+            symb = is_symbolic(V_r)
         else:
             symb = False
     except Exception:
         symb = False
     results.append({'Property': 'Circular Velocity', 'symb_condition': symb, 'symb_result': V_r})
-
-    # Potential
-    Phi_inf = None
-    pot_int_expr = None
-    try:
-        if M_r is not None:
-            Phi_inf, pot_int_expr, low, high = get_potential(M_r, r, rp, G)
-            symb = not str(Phi_inf).count('integral')
-        else:
-            symb = False
-    except Exception:
-        symb = False
-    results.append({'Property': 'Potential', 'symb_condition': symb, 'symb_result': Phi_inf})
 
     # Velocity Dispersion
     Sigma2 = None
@@ -228,12 +216,25 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
     try:
         if M_r is not None:
             Sigma2, sig_int_expr = get_velocity_dispersion(rho, M_r, r, rp, G)
-            symb = not str(Sigma2).count('integral')
+            symb = is_symbolic(Sigma2)
         else:
             symb = False
     except Exception:
         symb = False
     results.append({'Property': 'Radial Velocity Dispersion', 'symb_condition': symb, 'symb_result': Sigma2})
+
+    # Potential
+    Phi_inf = None
+    pot_int_expr = None
+    try:
+        if M_r is not None:
+            Phi_inf, pot_int_expr, low, high = get_potential(M_r, r, rp, G)
+            symb = is_symbolic(Phi_inf)
+        else:
+            symb = False
+    except Exception:
+        symb = False
+    results.append({'Property': 'Potential', 'symb_condition': symb, 'symb_result': Phi_inf})
 
     # Surface density Σ(R)
     Sigma_R = None
@@ -241,7 +242,7 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
     try:
         if rho is not None:
             Sigma_R, sigR_int_expr = get_surface_density(rho, r, R, rp)
-            symb = not str(Sigma_R).count('integral')
+            symb = is_symbolic(Sigma_R)
         else:
             symb = False
     except Exception:
@@ -254,7 +255,7 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
     try:
         if Sigma_R is not None:
             avg_Sigma_R, avgSigma_int_expr = get_average_surface_density(Sigma_R, R, Rp)
-            symb = not str(avg_Sigma_R).count('integral')
+            symb = is_symbolic(avg_Sigma_R)
         else:
             symb = False
     except Exception:
@@ -265,21 +266,6 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
         'symb_result': avg_Sigma_R
     })
 
-    # Projected concentration c2(R) = \barΣ/Σ
-    c2_R = None
-    try:
-        if (Sigma_R is not None) and (avg_Sigma_R is not None):
-            c2_R = get_projected_concentration(Sigma_R, avg_Sigma_R, R)
-            symb = not str(c2_R).count('integral')
-        else:
-            symb = False
-    except Exception:
-        symb = False
-    results.append({
-        'Property': 'Projected Concentration',
-        'symb_condition': symb,
-        'symb_result': c2_R
-    })
     return pd.DataFrame(results)
 
 
@@ -287,14 +273,39 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
 # EXECUTION
 # ==========================================
 
-input_type = 'density'  # 'density' or 'enclosed_mass
+
+# ===============================================
+# Example usage with parser using PhySO's SR.log
+# ===============================================
+
+# from parser import Parser
+# import sys, os
+
+# sys.path.append(os.path.dirname(__file__))
+# SR_LOG = "NIHAO_runb_hydro_0_1.000000_nspe2_nclass1_bs2000/SR.log"
+# p = Parser(SR_LOG, verbose=False)
+# best_phys = p.get_physical_expr(n=20)
+# print(best_phys)
+# physo_profiles = {}
+# for idx, entry in enumerate(best_phys):
+#     name = f"PhySO_{idx}"
+#     physo_profiles[name] = (entry["expr"], entry["params"])
+
+# profiles = physo_profiles
+
+
+input_type = 'density'  # 'density' or 'enclosed_mass'
+
+
+# ==========================================
+# Example profiles to check
+# ==========================================
 
 if input_type == 'density':
     profiles = {
         "NFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**2)", ['rho0', 'Rs']),
         "superNFW": ("rho0 / ((r / Rs) * (1 + r / Rs)**Rational(5, 2))", ['rho0', 'Rs']),
         "pISO": ("rho0 / (1 + (r / Rs)**2)", ['rho0', 'Rs']),
-        "pISO1": ("1 / (1 + (r/1)**2)", []),
         "Burkert": ("rho0 * Rs**3 / ((r + Rs)*(r**2 + Rs**2))", ['rho0', 'Rs']),
         "Lucky13": ("rho0 / (1 + (r/Rs))**3", ['rho0', 'Rs']),
         "Einasto": ("rho0 * exp(-2/alpha * ((r/Rs)**alpha - 1))", ['rho0', 'Rs', 'alpha']),
@@ -302,11 +313,13 @@ if input_type == 'density':
         "DiCintio": ("rho0/((r/Rs)**alpha * (1+(r/Rs)**(1/beta))**(beta*(gamma-alpha)))", ['rho0', 'Rs', 'alpha', 'beta', 'gamma']),
         "gNFW": ("rho0 / ((r/Rs)**gamma * (1 + r/Rs)**(3-gamma))", ['rho0', 'Rs', 'gamma']),
         "Dekel_Zhao": ("rho0 / ((r/Rs)**alpha * (1 + (r/Rs)**(1/2))**(7-2*alpha))", ['rho0', 'Rs', 'alpha']),
+        "pISO1": ("1 / (1 + (r/1)**2)", []),
         "Exponential": ("rho0 * exp(-r/Rs)", ['rho0', 'Rs']),
         "Exponential1": ("9.6 * exp(-r/1.4)", []),
         "Exponential2": ("rho0 * exp(-r/(Rs_1 + Rs_2))", ['rho0', 'Rs_1', 'Rs_2']),
         # "Test1": ("((exp((log((((((rs0/(c0/rs0))/c0)/rs0)/r)/c0))/c0))*rho0)-rho0)", ['rho0', 'rs0', 'c0']),
     }
+
 elif input_type == 'enclosed_mass':
     profiles = {
         "Plummer_M": ("M0 * r**3 / (r**2 + a**2)**(3/2)", ["M0", "a"],),
@@ -331,7 +344,7 @@ final_table = pd.DataFrame(summary_dict)
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.width', 1000)
 print("\n=== ANALYTICAL SOLUTIONS SUMMARY ===")
-print(final_table)
+print(final_table.T)
 
 # --- Export to Python File ---
 print("\nWriting 'derived_profiles.py'...")
