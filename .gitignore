@@ -3,3 +3,4 @@ sage-venv
 .vscode
 NIHAO_*
 __pycache__
+.ipynb_checkpoints
