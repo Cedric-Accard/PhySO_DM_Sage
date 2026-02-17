@@ -1,7 +1,9 @@
+import os
+import re
+import sys
+import signal
 import pandas as pd
 from sage.all import *
-import signal
-import re
 
 
 def is_symbolic(expr) -> bool:
@@ -13,6 +15,38 @@ def is_symbolic(expr) -> bool:
     if 'undef' in s:
         return False
     return True
+
+
+# def is_symbolic(expr) -> bool:
+#     """Return True if expr is 'symbolic enough'.
+
+#     Policy:
+#     - Reject None and 'undef'.
+#     - Accept closed forms (no 'integrate').
+#     - Accept expressions with a single 1D 'integrate' over a known dummy var.
+#     - Reject expressions with multiple or unusual integrals.
+#     """
+#     if expr is None:
+#         return False
+
+#     s = str(expr)
+
+#     if 'undef' in s:
+#         return False
+
+#     n_int = s.count('integrate')
+#     if n_int == 0:
+#         return True
+
+#     # Example stricter rule: accept at most one integrate
+#     if n_int > 1:
+#         return False
+
+#     # Optionally: only integrals over rp, R, or Rp
+#     if re.search(r"integrate\([^,]+,\s*(rp|R|Rp)\s*,", s) is None:
+#         return False
+
+#     return True
 
 
 class TimeoutError(Exception):
@@ -52,7 +86,6 @@ def sage_to_python_str(expr):
     # 1. Simple global replacements that are safe anywhere
     simple_replacements = {
         'pi': 'np.pi',
-        'e^': 'np.exp',   # crude, see note below
         '^': '**',
     }
     for old, new in simple_replacements.items():
@@ -273,8 +306,8 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
 # EXECUTION
 # ==========================================
 
-input_type = input("Enter input type ('density' or 'enclosed_mass'): ")  # 'density' or 'enclosed_mass'
-to_treat = input("Enter which profiles type ('physo' or 'litt'): ")  # 'physo' or 'standard'
+input_type = 'density'  # input("Enter input type ('density' or 'enclosed_mass'): ")  # 'density' or 'enclosed_mass'
+to_treat = 'physo'  # input("Enter which profiles type ('physo' or 'litt'): ")  # 'physo' or 'standard'ga
 
 # ===============================================
 # Example usage with parser using PhySO's SR.log
@@ -284,12 +317,12 @@ to_treat = input("Enter which profiles type ('physo' or 'litt'): ")  # 'physo' o
 
 if to_treat == 'physo':
     from parser import Parser
-    import sys, os
-        
+
     sys.path.append(os.path.dirname(__file__))
-    SR_LOG = "NIHAO_runb_hydro_0_1.000000_nspe2_nclass1_bs10000/SR.log"
+    # SR_LOG = "NIHAO_runb_hydro_0_1.000000_nspe3_nclass1_bs2000/SR.log"
+    SR_LOG = "NIHAO_runb_hydro_0_1_nspe2_nclass1_bs10000/SR.log"
     p = Parser(SR_LOG, verbose=False)
-    best_phys = p.get_physical_expr(n=20)
+    best_phys = p.get_physical_expr(n=50)
     # print(best_phys)
     physo_profiles = {}
     for idx, entry in enumerate(best_phys):
@@ -297,8 +330,6 @@ if to_treat == 'physo':
         physo_profiles[name] = (entry["expr"], entry["params"])
 
     profiles = physo_profiles
-
-
 
 
 # ==========================================
@@ -355,8 +386,6 @@ print("\n=== ANALYTICAL SOLUTIONS SUMMARY ===")
 print(final_table.T)
 
 # --- Export to Python File ---
-print("\nWriting 'derived_profiles.py'...")
-
 with open("derived_profiles.py", "w") as f:
     f.write("import numpy as np\n")
     f.write("import scipy.special\n\n")
@@ -381,7 +410,7 @@ with open("derived_profiles.py", "w") as f:
 
                 expr_str = sage_to_python_str(row['symb_result'])
 
-                f.write(f"def {func_name}(r, rho0, Rs, G=4.301e-6):\n")
+                f.write(f"def {func_name}(r, rho0, Rs, G):\n")
                 f.write(f"    # {row['Property']}\n")
                 f.write(f"    return {expr_str}\n\n")
 
