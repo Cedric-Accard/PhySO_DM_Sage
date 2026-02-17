@@ -74,7 +74,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_ROOT, "NIHAO_data/%s_profiles/" % BARY)
 METADATA_PATH = os.path.join(DATA_PATH, "MvirRvir.dat")
 
-RUN_NAME = "NIHAO_runb_%s_%i_%f_nspe%i_nclass%i_bs%i" % (BARY, SEED, FRAC_REALS, N_SPE_FREE_PARAMS, N_CLASS_FREE_PARAMS, BATCH_SIZE)
+RUN_NAME = "NIHAO_runb_%s_%i_%i_nspe%i_nclass%i_bs%i" % (BARY, SEED, FRAC_REALS, N_SPE_FREE_PARAMS, N_CLASS_FREE_PARAMS, BATCH_SIZE)
 
 RUN_DIR = os.path.join(PROJECT_ROOT, RUN_NAME)
 
@@ -188,9 +188,10 @@ RUN_CONFIG["free_const_opti_args"] = free_const_opti_args
 # Hack here
 RUN_CONFIG["learning_config"]["batch_size"] = BATCH_SIZE  # 20 # tmp
 
+RUN_CONFIG["learning_config"]["risk_factor"] = 0.1  # Increasing risk factor to allow for more exploration
+
 MAX_N_EVALUATIONS = 50000 + 1  # int(2.5 * 1e5) + 1
-# Allowed to search in an infinitely large search space, research will be stopped by MAX_N_EVALUATIONS
-N_EPOCHS = int(1e99)
+N_EPOCHS = int(1e99)  # Allowed to search in an infinitely large search space, research will be stopped by MAX_N_EVALUATIONS
 
 
 class DummyVisualiser:

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import json
 import ast
+import re
 
 
 def extract_parameters(expr: str, allowed_params: set[str]):
@@ -31,7 +32,12 @@ class Parser:
         print_(verbose, f"Loading {in_path}...")
         csv_log = pd.read_csv(in_path)
         print_(verbose, "Finished loading.")
-        allowed_parameters = set([c for c in csv_log.columns[8:]] + ['rho0', 'rs0'])
+        # allowed_parameters = set([c for c in csv_log.columns[8:]] + ['rho0', 'rs0'])
+        # allowed_parameters = set([c for c in csv_log.columns[8:]]) # + ['rho0', 'rs0', 'rs1', 'rs2', 'c0', 'c1', 'c2'])
+
+        allowed_parameters = set(re.sub(r"_[0-9]+$", "", c) for c in csv_log.columns[8:])
+
+        print(verbose, f"Allowed parameters: {allowed_parameters}")
         all_epochs = csv_log['epoch']
         all_expressions = csv_log['program']
         all_rewards = csv_log['reward']
