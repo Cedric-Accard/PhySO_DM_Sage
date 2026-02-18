@@ -37,7 +37,7 @@ class Parser:
 
         allowed_parameters = set(re.sub(r"_[0-9]+$", "", c) for c in csv_log.columns[8:])
 
-        print(verbose, f"Allowed parameters: {allowed_parameters}")
+        print_(verbose, f"Allowed parameters: {allowed_parameters}")
         all_epochs = csv_log['epoch']
         all_expressions = csv_log['program']
         all_rewards = csv_log['reward']
