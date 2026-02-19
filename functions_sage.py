@@ -183,7 +183,6 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
 
     if input_type == 'density':
         rho = expr
-        results.append({'Property': 'Density', 'symb_condition': True, 'symb_result': rho})
         ok, res = run_with_timeout(get_enclosed_mass, args=(rho, r, rp), timeout=timeout)
         if ok:
             M_r, _ = res
@@ -194,7 +193,6 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
         results.append({'Property': 'Enclosed Mass', 'symb_condition': symb, 'symb_result': M_r})
     elif input_type == 'enclosed_mass':
         M_r = expr
-        results.append({'Property': 'Enclosed Mass', 'symb_condition': True, 'symb_result': M_r})
         ok, res = run_with_timeout(get_density, args=(M_r, r, rp), timeout=timeout)
         if ok:
             rho = res
@@ -279,103 +277,3 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
     results.append({'Property': 'Average Surface Density', 'symb_condition': symb, 'symb_result': avg_Sigma_R})
 
     return pd.DataFrame(results)
-
-
-# ==========================================
-# EXECUTION
-# ==========================================
-
-input_type = 'density'
-
-sys.path.append(os.path.dirname(__file__))
-SR_LOG = "NIHAO_runb_hydro_0_1_nspe2_nclass1_bs10000/SR.log"
-p = Parser(SR_LOG, verbose=False)
-best_phys = p.get_physical_expr(n=100)
-
-physo_profiles = {}
-physo_rewards = {}
-for idx, entry in enumerate(best_phys):
-    name = f"PhySO_{idx}"
-    physo_profiles[name] = (entry["expr"], entry["params"])
-    physo_rewards[name] = entry["reward"]
-
-profiles = physo_profiles
-
-
-# ==========================================
-# CHECK PROPS
-# ==========================================
-
-timeout = 10  # seconds for each symbolic check
-
-print("Generating Analytical Solutions...")
-full_data = {}      # Store full DFs with formulas for export
-summary_dict = {}   # Store just True/False for printing
-
-for name, (prof_str, const_names) in profiles.items():
-    print(f"Processing {name}...")
-    df = check_analytical_properties(prof_str, const_names, timeout=timeout, input_type=input_type)
-    full_data[name] = df
-    if not df.empty:
-        summary_dict[name] = df.set_index('Property')['symb_condition']
-
-PROPERTY_WEIGHTS = {"Density": 1.0, "Enclosed Mass": 1.0, "Circular Velocity": 1.0, "Radial Velocity Dispersion": 1.0, "Potential": 1.0, "Surface Density": 1.0, "Average Surface Density": 1.0}
-
-analytic_scores = {}
-for name, df in full_data.items():
-    score = 0.0
-    for _, row in df.iterrows():
-        w = PROPERTY_WEIGHTS.get(row["Property"], 0.0)
-        if bool(row["symb_condition"]):
-            score += w
-    analytic_scores[name] = score
-
-
-names = list(summary_dict.keys())
-rewards_arr = np.array([physo_rewards[n] for n in names])
-ascores_arr = np.array([analytic_scores[n] for n in names])
-
-combined_df = pd.DataFrame({"reward": rewards_arr, "analytic_score": ascores_arr}, index=names)
-
-# Ordering: analytic_score (desc), then reward (desc)
-ordered_names = list(combined_df.sort_values(by=["analytic_score", "reward"], ascending=[False, False]).index)
-
-final_table = pd.DataFrame({name: summary_dict[name] for name in ordered_names})
-
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 1000)
-
-print("\n=== ANALYTICAL SOLUTIONS SUMMARY (sorted) ===")
-print(final_table.T)
-
-print("\n=== SCORES ===")
-print(combined_df.loc[ordered_names])
-
-# --- Export to Python File ---
-with open("derived_profiles.py", "w") as f:
-    f.write("import numpy as np\n")
-    f.write("import scipy.special\n\n")
-    f.write("# Helper wrapper for Sage compatibility\n")
-    f.write("def dilog(x):\n    return scipy.special.spence(1 - x)\n\n")
-
-    for name, df in full_data.items():
-        f.write(f"# ================= {name} =================\n")
-
-        for _, row in df.iterrows():
-            if row['symb_condition'] and row['symb_result'] is not None:
-                prop_name = row['Property'].replace(" ", "_").replace("(", "").replace(")", "").replace(".", "").lower()
-                # Special naming for potentials
-                if prop_name == "potential":
-                    func_name = f"{name}_potential"
-                elif prop_name == "radial_velocity_dispersion":
-                    func_name = f"{name}_sigma2"
-                elif prop_name == "enclosed_mass":
-                    func_name = f"{name}_mass"
-                else:
-                    func_name = f"{name}_{prop_name}"
-
-                expr_str = sage_to_python_str(row['symb_result'])
-
-                f.write(f"def {func_name}(r, rho0, Rs, G):\n")
-                f.write(f"    # {row['Property']}\n")
-                f.write(f"    return {expr_str}\n\n")

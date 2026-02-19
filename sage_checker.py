@@ -1,5 +1,5 @@
 # sage_checker.py
-from RewardedSage import check_analytical_properties
+from functions_sage import check_analytical_properties
 
 
 def check_profile(expr_str: str, params: list[str]) -> dict:

@@ -32,9 +32,6 @@ class Parser:
         print_(verbose, f"Loading {in_path}...")
         csv_log = pd.read_csv(in_path)
         print_(verbose, "Finished loading.")
-        # allowed_parameters = set([c for c in csv_log.columns[8:]] + ['rho0', 'rs0'])
-        # allowed_parameters = set([c for c in csv_log.columns[8:]]) # + ['rho0', 'rs0', 'rs1', 'rs2', 'c0', 'c1', 'c2'])
-
         allowed_parameters = set(re.sub(r"_[0-9]+$", "", c) for c in csv_log.columns[8:])
 
         print_(verbose, f"Allowed parameters: {allowed_parameters}")
