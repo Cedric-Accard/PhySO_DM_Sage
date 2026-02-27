@@ -25,7 +25,7 @@ N_CPUS_DEFAULT = 1
 
 
 # Example run
-# python nihao_run.py --nspe 2 --nclass 1 --bary hydro --trial 0 --frac_real 1.0
+# python nihao_run_perso.py --nspe 2 --nclass 1 --bary hydro --trial 0 --frac_real 1.0
 
 # ---------------------------------------------------- SCRIPT ARGS -----------------------------------------------------
 parser = argparse.ArgumentParser(description="Runs a nihao run.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -74,7 +74,8 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_ROOT, "NIHAO_data/%s_profiles/" % BARY)
 METADATA_PATH = os.path.join(DATA_PATH, "MvirRvir.dat")
 
-RUN_NAME = "NIHAO_runb_%s_%i_%i_nspe%i_nclass%i_bs%i" % (BARY, SEED, FRAC_REALS, N_SPE_FREE_PARAMS, N_CLASS_FREE_PARAMS, BATCH_SIZE)
+# RUN_NAME = "NIHAO_runb_%s_%i_%i_nspe%i_nclass%i_bs%i" % (BARY, SEED, FRAC_REALS, N_SPE_FREE_PARAMS, N_CLASS_FREE_PARAMS, BATCH_SIZE)
+RUN_NAME = "NIHAO_runb_%s_%i_nspe%i_bs%i" % (BARY, FRAC_REALS, N_SPE_FREE_PARAMS, BATCH_SIZE)
 
 RUN_DIR = os.path.join(PROJECT_ROOT, RUN_NAME)
 
@@ -227,21 +228,6 @@ expression, logs = physo.ClassSR(multi_X, multi_y, multi_y_weights=multi_y_weigh
                                  # Parallel mode
                                  parallel_mode=PARALLEL_MODE, n_cpus=N_CPUS)
 
-
-# for i_real in range(n_reals):
-#     # Getting prediction
-#     X = multi_X[i_real]
-#     y = multi_y[i_real]
-#     y_weight = multi_y_weights[i_real]
-#     y_pred = expression.execute(torch.tensor(X), i_realization=i_real).cpu().detach().numpy()
-#     # Plotting
-#     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-#     ax.errorbar(X[0], y, yerr=1 / np.sqrt(y_weight), fmt='.', markersize=1., label='Data')
-#     ax.plot(X[0], y_pred, label='Fit')
-#     ax.set_xlabel('r')
-#     ax.set_ylabel('log(rho)')
-#     ax.legend()
-#     fig.savefig('fit_%i.png' % (i_real), dpi=300)
 
 # Plotting results
 for i_real in range(n_reals):

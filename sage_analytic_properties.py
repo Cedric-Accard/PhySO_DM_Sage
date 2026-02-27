@@ -320,7 +320,7 @@ if to_treat == 'physo':
 
     sys.path.append(os.path.dirname(__file__))
     # SR_LOG = "NIHAO_runb_hydro_0_1.000000_nspe3_nclass1_bs2000/SR.log"
-    SR_LOG = "NIHAO_runb_hydro_0_1_nspe2_nclass1_bs10000/SR.log"
+    SR_LOG = "RunsToPlot/NIHAO_runb_hydro_1_nspe2_bs10000/SR.log"
     p = Parser(SR_LOG, verbose=False)
     best_phys = p.get_physical_expr(n=50)
     # print(best_phys)

@@ -62,7 +62,7 @@ class Parser:
         print_(verbose, f">>> Highest reward = {all_rewards[self.sorted_rewards[-1]]}")
 
         # Get physical indices
-        physical_indices = np.arange(len(all_expressions))[physical_mask.astype(np.bool)]
+        physical_indices = np.arange(len(all_expressions))[physical_mask.astype(bool)]
         self.physical_expr = np.array([id for id in self.sorted_rewards if id in physical_indices])
         print_(verbose, f">>> Found {len(self.physical_expr)} physical expressions")
 

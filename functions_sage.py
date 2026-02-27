@@ -7,6 +7,19 @@ from parser import Parser
 import numpy as np
 import multiprocessing as mp
 import traceback
+# import matplotlib
+# matplotlib.use("Agg")  # non-interactive backend, no GTK
+
+import multiprocessing
+
+
+def _timeout_worker(q, func, args, kwargs):
+    """Top-level worker so it is picklable under 'spawn'."""
+    try:
+        res = func(*args, **(kwargs or {}))
+        q.put((True, res))
+    except Exception as e:
+        q.put((False, e))
 
 
 def is_symbolic(expr) -> bool:
@@ -61,36 +74,59 @@ def sage_to_python_str(expr):
     return s
 
 
+# def run_with_timeout(func, args=(), kwargs=None, timeout=10):
+#     """
+#     Run func(*args, **kwargs) in a separate process and kill it after `timeout` seconds.
+#     Returns (success, result_or_error_string).
+#     """
+#     if kwargs is None:
+#         kwargs = {}
+
+#     def worker(q, *a, **k):
+#         try:
+#             res = func(*a, **k)
+#             q.put(("ok", res))
+#         except Exception:
+#             q.put(("err", traceback.format_exc()))
+
+#     q = mp.Queue()
+#     p = mp.Process(target=worker, args=(q, *args), kwargs=kwargs)
+#     p.start()
+#     p.join(timeout)
+
+#     if p.is_alive():
+#         p.terminate()
+#         p.join()
+#         return False, f"Timeout after {timeout} s"
+
+#     if q.empty():
+#         return False, "No result returned (crash or kill)."
+
+#     status, payload = q.get()
+#     return (True, payload) if status == "ok" else (False, payload)
+
 def run_with_timeout(func, args=(), kwargs=None, timeout=10):
-    """
-    Run func(*args, **kwargs) in a separate process and kill it after `timeout` seconds.
-    Returns (success, result_or_error_string).
-    """
     if kwargs is None:
         kwargs = {}
 
-    def worker(q, *a, **k):
-        try:
-            res = func(*a, **k)
-            q.put(("ok", res))
-        except Exception:
-            q.put(("err", traceback.format_exc()))
-
-    q = mp.Queue()
-    p = mp.Process(target=worker, args=(q, *args), kwargs=kwargs)
+    q = multiprocessing.Queue()
+    p = multiprocessing.Process(
+        target=_timeout_worker,
+        args=(q, func, args, kwargs),
+    )
     p.start()
     p.join(timeout)
 
     if p.is_alive():
         p.terminate()
         p.join()
-        return False, f"Timeout after {timeout} s"
+        return False, TimeoutError(f"Timeout after {timeout} s")
 
     if q.empty():
-        return False, "No result returned (crash or kill)."
+        # Worker crashed before putting anything in the queue
+        return False, RuntimeError("No result from worker")
 
-    status, payload = q.get()
-    return (True, payload) if status == "ok" else (False, payload)
+    return q.get()
 
 
 # ==========================================
