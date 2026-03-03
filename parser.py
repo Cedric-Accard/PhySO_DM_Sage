@@ -82,27 +82,44 @@ class Parser:
             sorted_list.append(self.sr_log[str(i)])
         return sorted_list
 
-    def get_physical_expr(self, n: int = None) -> dict:
-        """ Returns a sorted list of all physical expressions by reward:
+    # def get_physical_expr(self, n: int = None) -> dict:
+    #     """ Returns a sorted list of all physical expressions by reward:
 
-            {
-                'expr': str,
-                'params': list[str],
-                'epoch': int,
-                'is_physical': bool = True,
-                'reward': float
-            }
+    #         {
+    #             'expr': str,
+    #             'params': list[str],
+    #             'epoch': int,
+    #             'is_physical': bool = True,
+    #             'reward': float
+    #         }
 
-            If n is not None, truncates to the n-most rewarded physical expressions.
+    #         If n is not None, truncates to the n-most rewarded physical expressions.
+    #     """
+    #     sorted_physical_expr = self.physical_expr
+    #     if n is not None:
+    #         sorted_physical_expr = sorted_physical_expr[-n:]
+
+    #     sorted_list = []
+    #     for i in sorted_physical_expr:
+    #         sorted_list.append(self.sr_log[str(i)])
+    #     return sorted_list
+    
+    def get_physical_expr(self, n: int = None) -> list[dict]:
         """
-        sorted_physical_expr = self.physical_expr
+        Returns a sorted list of physical expressions by reward (highest first).
+        """
+        # self.physical_expr currently stores physical indices in ascending reward order
+        # Reverse to get descending (best first)
+        sorted_physical_expr = self.physical_expr[::-1]
+
         if n is not None:
-            sorted_physical_expr = sorted_physical_expr[-n:]
+            sorted_physical_expr = sorted_physical_expr[:n]  # take first n = best n
 
         sorted_list = []
         for i in sorted_physical_expr:
             sorted_list.append(self.sr_log[str(i)])
         return sorted_list
+
 
     def dump_log(self, out_path: str):
         """ Dump dict into json."""
