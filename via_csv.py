@@ -11,6 +11,8 @@ from functions_sage import check_analytical_properties
 
 # one example file; generalise to a list if you have one per run
 CSV_PATH = "./RunsToPlot/SageRuns/NIHAO_runb_hydro_0_1_nspe2_nclass1_bs10000/SR_curves_data.csv"
+# CSV_PATH = "./RunsToPlot/NIHAO_runb_hydro_1_nspe2_bs10000/SR_curves_data.csv"
+
 input_type = "density"
 
 
@@ -70,16 +72,16 @@ records = []
 
 for idx, row in df_csv.iterrows():
     expr_str = row["best_prog_of_epoch"]
+    const_names = list(extract_parameters(expr_str, allowed_parameters))
 
-    # if max_R is the same reward as before, convert to R^2:
+    # separate SPE vs CLASS parameters
+    spe_params = [p for p in const_names if p.startswith(("rho0", "rs"))]
+    class_params = [p for p in const_names if p.startswith("c")]
     reward = float(row["max_R"])
     R2 = float(reward_to_R2(reward))
-    # if instead max_R is already a correlation coefficient R, do:
-    # R2 = float(row["max_R"])**2
-
-    expr_str = row["best_prog_of_epoch"]
-    const_names = list(extract_parameters(expr_str, allowed_parameters))
-    n_free = len(const_names)
+    n_spe = len(spe_params)
+    n_class = len(class_params)
+    n_free = n_spe + n_class
 
     # Sage analytic properties
     try:
@@ -90,7 +92,16 @@ for idx, row in df_csv.iterrows():
 
     a_score = analytic_score_from_df(df_sage)
 
-    records.append(dict(epoch=int(row["epoch"]), R2=R2, n_free=n_free, analytic_score=a_score))
+    records.append(
+        dict(
+            epoch=int(row["epoch"]),
+            R2=R2,
+            n_free=n_free,
+            n_spe=n_spe,
+            n_class=n_class,
+            analytic_score=a_score,
+        )
+    )
 
 df = pd.DataFrame.from_records(records)
 print(df.to_string())
@@ -99,36 +110,29 @@ print("Total epochs:", len(df))
 # -------------------------------------------------------
 # 3D scatter plot: n_free vs R^2 vs analytic_score, coloured by epoch
 # -------------------------------------------------------
-
+df = pd.DataFrame.from_records(records)
 df_sorted = df.sort_values("epoch").reset_index(drop=True)
 
-x = df_sorted["n_free"].values
-y = df_sorted["R2"].values
-z = df_sorted["analytic_score"].values
-t = df_sorted["epoch"].values.astype(float)   # epoch as colour parameter
+fig, ax = plt.subplots(figsize=(7, 5))
 
-fig = plt.figure(figsize=(7, 6))
-ax = fig.add_subplot(111, projection="3d")
-colmap = cm.managua
-# scatter, coloured by epoch
-sc = ax.scatter(x, y, z, c=t, cmap=colmap, s=30, alpha=0.9, edgecolor="none")
+sc = ax.scatter(
+    df_sorted["epoch"],
+    df_sorted["R2"],
+    c=df_sorted["analytic_score"],
+    cmap=cm.managua,
+    s=40,
+    alpha=0.9,
+    edgecolor="none",
+)
 
-# line segments between consecutive epochs, coloured by epoch
-points = np.array([x, y, z]).T.reshape(-1, 1, 3)
-segments = np.concatenate([points[:-1], points[1:]], axis=1)
+# optional line connecting epochs
+ax.plot(df_sorted["epoch"], df_sorted["R2"], color="0.7", linewidth=1.0, alpha=0.6)
 
-lc = Line3DCollection(segments, cmap=colmap)
-lc.set_array(t[:-1])          # colour per segment using epoch
-lc.set_linewidth(1.5)
-lc.set_alpha(0.6)
-ax.add_collection3d(lc)
-
-ax.set_xlabel("Number of free parameters")
+ax.set_xlabel("Epoch")
 ax.set_ylabel(r"$R^2$")
-ax.set_zlabel("Analytic score")
 
-cbar = fig.colorbar(sc, ax=ax, shrink=0.8, pad=0.1)
-cbar.set_label("Epoch")
+cbar = fig.colorbar(sc, ax=ax, pad=0.02)
+cbar.set_label("Analytic score")
 
 plt.tight_layout()
 plt.show()

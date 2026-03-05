@@ -307,7 +307,7 @@ def check_analytical_properties(input_str, free_consts_names, input_type='densit
 # ==========================================
 
 input_type = 'density'  # input("Enter input type ('density' or 'enclosed_mass'): ")  # 'density' or 'enclosed_mass'
-to_treat = 'physo'  # input("Enter which profiles type ('physo' or 'litt'): ")  # 'physo' or 'standard'ga
+to_treat = 'litt'  # input("Enter which profiles type ('physo' or 'litt'): ")  # 'physo' or 'standard'ga
 
 # ===============================================
 # Example usage with parser using PhySO's SR.log
