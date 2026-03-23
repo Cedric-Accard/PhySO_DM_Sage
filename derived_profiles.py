@@ -5,677 +5,221 @@ import scipy.special
 def dilog(x):
     return scipy.special.spence(1 - x)
 
-# ================= PhySO_0 =================
-def PhySO_0_density(r, rho0, Rs, G):
+# ================= NFW =================
+def NFW_density(r, rho0, Rs, G):
     # Density
-    return -rho0 + 1.00000000000000*rho0*rs0**2/r**2
+    return Rs*rho0/(r*(r/Rs + 1)**2)
 
-def PhySO_0_mass(r, rho0, Rs, G):
+def NFW_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
+    return -4*(np.pi*Rs**4*np.log(Rs) + (np.pi*Rs**3*np.log(Rs) + np.pi*Rs**3)*r - (np.pi*Rs**4 + np.pi*Rs**3*r)*np.log(Rs + r))*rho0/(Rs + r)
 
-def PhySO_0_circular_velocity(r, rho0, Rs, G):
+def NFW_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
+    return 2*np.sqrt(-(np.pi*G*Rs**4*np.log(Rs) + (np.pi*G*Rs**3*np.log(Rs) + np.pi*G*Rs**3)*r - (np.pi*G*Rs**4 + np.pi*G*Rs**3*r)*np.log(Rs + r))*rho0/(Rs*r + r**2))
 
-# ================= PhySO_1 =================
-def PhySO_1_density(r, rho0, Rs, G):
+def NFW_potential(r, rho0, Rs, G):
+    # Potential
+    return -4*(np.pi*G*Rs**3*np.log(Rs + r) - np.pi*G*Rs**3*np.log(Rs))*rho0/r
+
+# ================= superNFW =================
+def superNFW_density(r, rho0, Rs, G):
     # Density
-    return 1.00000000000000*rho0*rs0/(c0*r*(7.38905609893065*r**2/rs0**2 + 1.00000000000000))
+    return Rs*rho0/(r*(r/Rs + 1)**5)
 
-def PhySO_1_mass(r, rho0, Rs, G):
+def superNFW_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return 0.2706705664732254*np.pi*rho0*rs0**3*np.log((7.38905609893065*r**2 + 1.0*rs0**2)/rs0**2)/c0
+    return 1/3*(6*np.pi*Rs**5*r**2 + 4*np.pi*Rs**4*r**3 + np.pi*Rs**3*r**4)*rho0/(Rs**4 + 4*Rs**3*r + 6*Rs**2*r**2 + 4*Rs*r**3 + r**4)
 
-def PhySO_1_circular_velocity(r, rho0, Rs, G):
+def superNFW_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 0.520260095022889*np.sqrt(np.pi*G*rho0*rs0**3*np.log((7.38905609893065*r**2 + 1.0*rs0**2)/rs0**2)/(c0*r))
+    return 1/3*np.sqrt(3)*np.sqrt((6*np.pi*G*Rs**5*r + 4*np.pi*G*Rs**4*r**2 + np.pi*G*Rs**3*r**3)*rho0/(Rs**4 + 4*Rs**3*r + 6*Rs**2*r**2 + 4*Rs*r**3 + r**4))
 
-def PhySO_1_surface_density(r, rho0, Rs, G):
+def superNFW_sigma2(r, rho0, Rs, G):
+    # Radial Velocity Dispersion
+    return -1/840*(4421*np.pi*G*Rs**8*r + 23048*np.pi*G*Rs**7*r**2 + 57288*np.pi*G*Rs**6*r**3 + 83216*np.pi*G*Rs**5*r**4 + 74620*np.pi*G*Rs**4*r**5 + 40880*np.pi*G*Rs**3*r**6 + 12600*np.pi*G*Rs**2*r**7 + 1680*np.pi*G*Rs*r**8 - 1680*(np.pi*G*Rs**8*r + 8*np.pi*G*Rs**7*r**2 + 28*np.pi*G*Rs**6*r**3 + 56*np.pi*G*Rs**5*r**4 + 70*np.pi*G*Rs**4*r**5 + 56*np.pi*G*Rs**3*r**6 + 28*np.pi*G*Rs**2*r**7 + 8*np.pi*G*Rs*r**8 + np.pi*G*r**9)*np.log(Rs + r) + 1680*(np.pi*G*Rs**8*r + 8*np.pi*G*Rs**7*r**2 + 28*np.pi*G*Rs**6*r**3 + 56*np.pi*G*Rs**5*r**4 + 70*np.pi*G*Rs**4*r**5 + 56*np.pi*G*Rs**3*r**6 + 28*np.pi*G*Rs**2*r**7 + 8*np.pi*G*Rs*r**8 + np.pi*G*r**9)*np.log(r))*rho0/(Rs**7 + 3*Rs**6*r + 3*Rs**5*r**2 + Rs**4*r**3)
+
+def superNFW_potential(r, rho0, Rs, G):
+    # Potential
+    return -1/3*(3*np.pi*G*Rs**5 + 3*np.pi*G*Rs**4*r + np.pi*G*Rs**3*r**2)*rho0/(Rs**3 + 3*Rs**2*r + 3*Rs*r**2 + r**3)
+
+# ================= pISO =================
+def pISO_density(r, rho0, Rs, G):
+    # Density
+    return rho0/(r**2/Rs**2 + 1)
+
+def pISO_mass(r, rho0, Rs, G):
+    # Enclosed Mass
+    return -4*(np.pi*Rs**3*np.arctan(r/Rs) - np.pi*Rs**2*r)*rho0
+
+def pISO_circular_velocity(r, rho0, Rs, G):
+    # Circular Velocity
+    return 2*np.sqrt(-(np.pi*G*Rs**3*np.arctan(r/Rs) - np.pi*G*Rs**2*r)*rho0/r)
+
+def pISO_sigma2(r, rho0, Rs, G):
+    # Radial Velocity Dispersion
+    return 1/2*(np.pi**3*G*Rs**2*r + np.pi**3*G*r**3 - 4*(np.pi*G*Rs**2*r + np.pi*G*r**3)*np.arctan(r/Rs)**2 - 8*(np.pi*G*Rs**3 + np.pi*G*Rs*r**2)*np.arctan(r/Rs))*rho0/r
+
+def pISO_surface_density(r, rho0, Rs, G):
     # Surface Density
-    return -2091716122475/2462863044*(rho0*rs0**2*np.log((165417469811022409873132816*R**4 + 179094561033273389971758733*R**2*rs0**2 + 24237813143575609401840835*rs0**4 - 19782263938339608*(5329837*R**2*rs0 + 1442630*rs0**3)*np.sqrt(5329837*R**2 + 721315*rs0**2))/(165417469811022409873132816*R**4 + 429963280627*R**2*rs0**2 + 58189202365*rs0**4)) - rho0*rs0**2*np.log((25722944606792*R**2 + 3481221994040*rs0**2 - 4098918063*np.sqrt(5329837*R**2 + 721315*rs0**2)*rs0)/(25722944606792*R**2 + 3481221994040*rs0**2 + 4098918063*np.sqrt(5329837*R**2 + 721315*rs0**2)*rs0)))*np.sqrt(5329837*R**2 + 721315*rs0**2)/(5329837*R**2*c0 + 721315*c0*rs0**2)
+    return np.pi*Rs**2*rho0/np.sqrt(R**2 + Rs**2)
 
-# ================= PhySO_2 =================
-def PhySO_2_density(r, rho0, Rs, G):
-    # Density
-    return -rho0 + 1.00000000000000*rho0*rs0**2/r**2
-
-def PhySO_2_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_2_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_3 =================
-def PhySO_3_density(r, rho0, Rs, G):
-    # Density
-    return -c0*rho0*rs0/(r*(r**2/rs0**2 + 1.00000000000000))
-
-def PhySO_3_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -2*np.pi*c0*rho0*rs0**3*np.log((1.0*r**2 + 1.0*rs0**2)/rs0**2)
-
-def PhySO_3_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(-np.pi*G*c0*rho0*rs0**3*np.log((1.0*r**2 + 1.0*rs0**2)/rs0**2)/r)
-
-def PhySO_3_surface_density(r, rho0, Rs, G):
-    # Surface Density
-    return -(c0*rho0*rs0**2*np.log((R**2 + rs0**2 - np.sqrt(R**2 + rs0**2)*rs0)/(R**2 + rs0**2 + np.sqrt(R**2 + rs0**2)*rs0)) - c0*rho0*rs0**2*np.log((R**4 + 8*R**2*rs0**2 + 8*rs0**4 - 4*(R**2*rs0 + 2*rs0**3)*np.sqrt(R**2 + rs0**2))/R**4))/np.sqrt(R**2 + rs0**2)
-
-def PhySO_3_average_surface_density(r, rho0, Rs, G):
+def pISO_average_surface_density(r, rho0, Rs, G):
     # Average Surface Density
-    return 2*(2*c0*rho0*rs0**3*(np.log(2) - np.log(R)) + 2*c0*rho0*rs0**3*np.log(rs0) - (c0*rho0*rs0**2*np.log((R**2 + 2*rs0**2 - 2*np.sqrt(R**2 + rs0**2)*rs0)/R**2) - c0*rho0*rs0**2*np.log((R**4 + 8*R**2*rs0**2 + 8*rs0**4 - 4*(R**2*rs0 + 2*rs0**3)*np.sqrt(R**2 + rs0**2))/R**4))*np.sqrt(R**2 + rs0**2))/R**2
+    return -2*(np.pi*Rs**3*rho0 - np.pi*np.sqrt(R**2 + Rs**2)*Rs**2*rho0)/R**2
 
-# ================= PhySO_4 =================
-def PhySO_4_density(r, rho0, Rs, G):
+# ================= Burkert =================
+def Burkert_density(r, rho0, Rs, G):
     # Density
-    return -rho0 + 1.00000000000000*rho0*rs0**2/r**2
+    return Rs**3*rho0/((Rs**2 + r**2)*(Rs + r))
 
-def PhySO_4_mass(r, rho0, Rs, G):
+def Burkert_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
+    return -(2*np.pi*Rs**3*np.arctan(r/Rs) - np.pi*Rs**3*np.log(Rs**2 + r**2) - 2*np.pi*Rs**3*np.log(Rs + r) + 4*np.pi*Rs**3*np.log(Rs))*rho0
 
-def PhySO_4_circular_velocity(r, rho0, Rs, G):
+def Burkert_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
+    return np.sqrt(-(2*np.pi*G*Rs**3*np.arctan(r/Rs) - np.pi*G*Rs**3*np.log(Rs**2 + r**2) - 2*np.pi*G*Rs**3*np.log(Rs + r) + 4*np.pi*G*Rs**3*np.log(Rs))*rho0/r)
 
-# ================= PhySO_5 =================
-def PhySO_5_density(r, rho0, Rs, G):
-    # Density
-    return -rho0 + 1.00000000000000*rho0*rs0**2/r**2
-
-def PhySO_5_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_5_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_6 =================
-def PhySO_6_density(r, rho0, Rs, G):
-    # Density
-    return rho0 - rho0*rs0**2/r**2
-
-def PhySO_6_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*r**3*rho0 - 4*np.pi*r*rho0*rs0**2
-
-def PhySO_6_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_7 =================
-def PhySO_7_density(r, rho0, Rs, G):
-    # Density
-    return -rho0 + rho0*rs0**2/r**2
-
-def PhySO_7_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_7_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_8 =================
-def PhySO_8_density(r, rho0, Rs, G):
-    # Density
-    return -rho0 + rho0*rs0**2/r**2
-
-def PhySO_8_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_8_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_9 =================
-def PhySO_9_density(r, rho0, Rs, G):
-    # Density
-    return (c0 - rs0**2*e**(c0*r/rs0)/r**2)*rho0
-
-def PhySO_9_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*(np.pi*c0**2*r**3*rho0 - 3*np.pi*rho0*rs0**3*e**(c0*r/rs0) + 3*np.pi*rho0*rs0**3)/c0
-
-def PhySO_9_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt((np.pi*G*c0**2*r**3*rho0 - 3*np.pi*G*rho0*rs0**3*e**(c0*r/rs0) + 3*np.pi*G*rho0*rs0**3)/(c0*r))
-
-# ================= PhySO_10 =================
-def PhySO_10_density(r, rho0, Rs, G):
-    # Density
-    return -rho0*e**(np.log(1.00000000000000*(r + rs0)/(c0*rs0))**2)
-
-# ================= PhySO_11 =================
-def PhySO_11_density(r, rho0, Rs, G):
-    # Density
-    return rho0 - 2.71828182845905*rho0*rs0**2/(c0*r**2)
-
-def PhySO_11_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/31173069*(10391023*np.pi*c0*r**3*rho0 - 84737187*np.pi*r*rho0*rs0**2)/c0
-
-def PhySO_11_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/31173069*np.sqrt(31173069)*np.sqrt((10391023*np.pi*G*c0*r**2*rho0 - 84737187*np.pi*G*rho0*rs0**2)/c0)
-
-# ================= PhySO_12 =================
-def PhySO_12_density(r, rho0, Rs, G):
-    # Density
-    return (1.00000000000000*c0*e**(-np.sqrt(c0*r/rs0)) + 1.00000000000000)**2*rho0 - rho0
-
-def PhySO_12_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return (-10.0*np.pi*c0**3*r**2*rho0*rs0 - 30.0*np.pi*c0**2*r*rho0*rs0**2 + (1920.0*np.pi + 15.0*np.pi*c0)*rho0*rs0**3*e**(2*np.sqrt(c0*r/rs0)) + (-4.0*np.pi*c0*rho0*(c0*r/rs0)**(5/2) - 20.0*np.pi*c0*rho0*(c0*r/rs0)**(3/2) - 30.0*np.pi*c0*rho0*np.sqrt(c0*r/rs0) - 15.0*np.pi*c0*rho0)*rs0**3 + (-80.0*np.pi*c0**2*r**2*rho0*rs0 - 960.0*np.pi*c0*r*rho0*rs0**2 + (-16.0*np.pi*rho0*(c0*r/rs0)**(5/2) - 320.0*np.pi*rho0*(c0*r/rs0)**(3/2) - 1920.0*np.pi*rho0*np.sqrt(c0*r/rs0) - 1920.0*np.pi*rho0)*rs0**3)*e**(np.sqrt(c0*r/rs0)))*e**(-2*np.sqrt(c0*r/rs0))/c0**2
-
-def PhySO_12_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt((-10.0*np.pi*G*c0**3*r**2*rho0*rs0 - 30.0*np.pi*G*c0**2*r*rho0*rs0**2 + (15.0*np.pi*G*c0 + 1920.0*np.pi*G)*rho0*rs0**3*e**(2*np.sqrt(c0*r/rs0)) + (-4.0*np.pi*G*c0*rho0*(c0*r/rs0)**(5/2) - 20.0*np.pi*G*c0*rho0*(c0*r/rs0)**(3/2) - 30.0*np.pi*G*c0*rho0*np.sqrt(c0*r/rs0) - 15.0*np.pi*G*c0*rho0)*rs0**3 + (-80.0*np.pi*G*c0**2*r**2*rho0*rs0 - 960.0*np.pi*G*c0*r*rho0*rs0**2 + (-16.0*np.pi*G*rho0*(c0*r/rs0)**(5/2) - 320.0*np.pi*G*rho0*(c0*r/rs0)**(3/2) - 1920.0*np.pi*G*rho0*np.sqrt(c0*r/rs0) - 1920.0*np.pi*G*rho0)*rs0**3)*e**(np.sqrt(c0*r/rs0)))/r)*e**(-np.sqrt(c0*r/rs0))/c0
-
-def PhySO_12_sigma2(r, rho0, Rs, G):
-    # Radial Velocity Dispersion
-    return -(-(1.01195085757989e+21)*G*c0**3*r*rho0*rs0**2*scipy.special.expi(-4*np.sqrt(c0*r*rs0)/rs0)*e**(2*np.sqrt(c0*r/rs0) + 4*np.sqrt(c0*r*rs0)/rs0) - (1.30035685212073e+23)*G*c0**2*r*rho0*rs0**2*scipy.special.expi(-3*np.sqrt(c0*r*rs0)/rs0)*e**(2*np.sqrt(c0*r/rs0) + 4*np.sqrt(c0*r*rs0)/rs0) + ((5.05975428789945e+20)*G*c0**2 + (6.47648548916414e+22)*G*c0)*r*rho0*rs0**2*scipy.special.expi(-np.sqrt(c0*r*rs0)/rs0)*e**(2*np.sqrt(c0*r/rs0) + 4*np.sqrt(c0*r*rs0)/rs0) + ((1.01195085757989e+21)*G*c0**3 + (1.29529709783283e+23)*G*c0**2 - (6.47648548916414e+22)*G*c0)*r*rho0*rs0**2*scipy.special.expi(-2*np.sqrt(c0*r*rs0)/rs0)*e**(2*np.sqrt(c0*r/rs0) + 4*np.sqrt(c0*r*rs0)/rs0) + (-(5.05975428789945e+20)*G*c0 - (6.47648548916414e+22)*G)*rho0*rs0**3*e**(2*np.sqrt(c0*r/rs0) + 3*np.sqrt(c0*r*rs0)/rs0) + ((3.37316952560632e+19)*G*c0**4*r**2*rho0*rs0 + (1.93957247722363e+20)*G*c0**3*r*rho0*rs0**2 + (2.52987714420474e+20)*G*c0**2*rho0*rs0**3)*e**(2*np.sqrt(c0*r/rs0)) + ((5.39707123868518e+20)*G*c0**2*r**2*rho0*rs0 + (1.24132638541986e+22)*G*c0*r*rho0*rs0**2 + (-(2.52987714420474e+20)*G*c0**2 - (3.23824274458207e+22)*G*c0 + (6.47648548916414e+22)*G)*rho0*rs0**3)*e**(2*np.sqrt(c0*r/rs0) + 2*np.sqrt(c0*r*rs0)/rs0) + ((2.69853562048505e+20)*G*c0**3*r**2*rho0*rs0 + (4.48256750283252e+21)*G*c0**2*r*rho0*rs0**2 + (3.28884028746107e+22)*G*c0*rho0*rs0**3)*e**(2*np.sqrt(c0*r/rs0) + np.sqrt(c0*r*rs0)/rs0) + ((1.0119508576819e+20)*G*c0**3*r*rho0*rs0*e**(2*np.sqrt(c0*r/rs0)) + ((5.05975428789945e+20)*G*c0 + (6.47648548916414e+22)*G)*rho0*rs0**2*e**(2*np.sqrt(c0*r/rs0) + 3*np.sqrt(c0*r*rs0)/rs0) + ((3.23824274451679e+21)*G*c0*r*rho0*rs0 + ((5.05975428789945e+20)*G*c0**2 + (6.47648548916414e+22)*G*c0)*rho0*rs0**2)*e**(2*np.sqrt(c0*r/rs0) + 2*np.sqrt(c0*r*rs0)/rs0) + ((1.30429221655962e+21)*G*c0**2*r*rho0*rs0 - (3.18764520167043e+22)*G*c0*rho0*rs0**2)*e**(2*np.sqrt(c0*r/rs0) + np.sqrt(c0*r*rs0)/rs0))*np.sqrt(c0*r*rs0))*e**(-4*np.sqrt(c0*r*rs0)/rs0)/((5.36856603887193e+18)*c0**3*r + (1.07371320777439e+19)*c0**2*r*e**(np.sqrt(c0*r/rs0)))
-
-def PhySO_12_potential(r, rho0, Rs, G):
+def Burkert_potential(r, rho0, Rs, G):
     # Potential
-    return -(-4.0*np.pi*G*c0**3*r**2*rho0*rs0 + (-14.0*np.pi*G*c0**2*r*rho0*np.sqrt(c0*r/rs0) - 27.0*np.pi*G*c0**2*r*rho0)*rs0**2 + ((15.0*np.pi*G*c0 + 1920.0*np.pi*G)*rho0*rs0**3 + (60.0*np.pi*G*c0**2*r*rho0*scipy.special.expi(-2*np.sqrt(c0*r/rs0)) + 1920.0*np.pi*G*c0*r*rho0*scipy.special.expi(-np.sqrt(c0*r/rs0)) + ((-120.0*np.pi*scipy.special.gamma(-1, 2*np.sqrt(c0*r/rs0)) - 120.0*np.pi*scipy.special.gamma(-2, 2*np.sqrt(c0*r/rs0)))*G*c0**2 + (-3840.0*np.pi*scipy.special.gamma(-1, np.sqrt(c0*r/rs0)) - 3840.0*np.pi*scipy.special.gamma(-2, np.sqrt(c0*r/rs0)))*G*c0)*r*rho0)*rs0**2)*e**(2*np.sqrt(c0*r/rs0)) + (-32.0*np.pi*G*c0**2*r**2*rho0*rs0 + (-224.0*np.pi*G*c0*r*rho0*np.sqrt(c0*r/rs0) - 864.0*np.pi*G*c0*r*rho0)*rs0**2)*e**(np.sqrt(c0*r/rs0)))*e**(-2*np.sqrt(c0*r/rs0))/(c0**2*r)
+    return -(np.pi**2*G*Rs**2*r - 4*np.pi*G*Rs**3*np.log(Rs) - 2*(np.pi*G*Rs**3 + np.pi*G*Rs**2*r)*np.arctan(r/Rs) + (np.pi*G*Rs**3 - np.pi*G*Rs**2*r)*np.log(Rs**2 + r**2) + 2*(np.pi*G*Rs**3 + np.pi*G*Rs**2*r)*np.log(Rs + r))*rho0/r
 
-# ================= PhySO_13 =================
-def PhySO_13_density(r, rho0, Rs, G):
+# ================= Lucky13 =================
+def Lucky13_density(r, rho0, Rs, G):
     # Density
-    return rho0 - 1.00000000000000*rho0*rs0**2/(c0*r**2)
+    return rho0/(r/Rs + 1)**3
 
-def PhySO_13_mass(r, rho0, Rs, G):
+def Lucky13_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return 4/3*(np.pi*c0*r**3*rho0 - 3*np.pi*r*rho0*rs0**2)/c0
+    return -2*(2*np.pi*Rs**5*np.log(Rs) + (2*np.pi*Rs**3*np.log(Rs) + 3*np.pi*Rs**3)*r**2 + 2*(2*np.pi*Rs**4*np.log(Rs) + np.pi*Rs**4)*r - 2*(np.pi*Rs**5 + 2*np.pi*Rs**4*r + np.pi*Rs**3*r**2)*np.log(Rs + r))*rho0/(Rs**2 + 2*Rs*r + r**2)
 
-def PhySO_13_circular_velocity(r, rho0, Rs, G):
+def Lucky13_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt((np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)/c0)
+    return np.sqrt(2)*np.sqrt(-(2*np.pi*G*Rs**5*np.log(Rs) + (2*np.pi*G*Rs**3*np.log(Rs) + 3*np.pi*G*Rs**3)*r**2 + 2*(2*np.pi*G*Rs**4*np.log(Rs) + np.pi*G*Rs**4)*r - 2*(np.pi*G*Rs**5 + 2*np.pi*G*Rs**4*r + np.pi*G*Rs**3*r**2)*np.log(Rs + r))*rho0/(Rs**2*r + 2*Rs*r**2 + r**3))
 
-# ================= PhySO_14 =================
-def PhySO_14_density(r, rho0, Rs, G):
+def Lucky13_potential(r, rho0, Rs, G):
+    # Potential
+    return 2*(2*np.pi*G*Rs**4*np.log(Rs) + (2*np.pi*G*Rs**3*np.log(Rs) + np.pi*G*Rs**3)*r - 2*(np.pi*G*Rs**4 + np.pi*G*Rs**3*r)*np.log(Rs + r))*rho0/(Rs*r + r**2)
+
+# ================= Einasto =================
+def Einasto_density(r, rho0, Rs, G):
     # Density
-    return rho0 - 1.00000000000000*rho0*rs0**2/(c0*r**2)
+    return rho0*e**(-2*((r/Rs)**alpha - 1)/alpha)
 
-def PhySO_14_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*(np.pi*c0*r**3*rho0 - 3*np.pi*r*rho0*rs0**2)/c0
-
-def PhySO_14_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt((np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)/c0)
-
-# ================= PhySO_15 =================
-def PhySO_15_density(r, rho0, Rs, G):
+# ================= coreEinasto =================
+def coreEinasto_density(r, rho0, Rs, G):
     # Density
-    return -rho0 + rho0*rs0**2/(c0*r**2)
+    return rho0*e**(-2*((r/Rs + rc/Rs)**alpha - 1)/alpha)
 
-def PhySO_15_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*(np.pi*c0*r**3*rho0 - 3*np.pi*r*rho0*rs0**2)/c0
-
-def PhySO_15_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-(np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)/c0)
-
-# ================= PhySO_16 =================
-def PhySO_16_density(r, rho0, Rs, G):
+# ================= DiCintio =================
+def DiCintio_density(r, rho0, Rs, G):
     # Density
-    return -rho0 + rho0*rs0**2/(c0*r**2)
+    return rho0*((r/Rs)**(1/beta) + 1)**((alpha - gamma)*beta)/(r/Rs)**alpha
 
-def PhySO_16_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*(np.pi*c0*r**3*rho0 - 3*np.pi*r*rho0*rs0**2)/c0
-
-def PhySO_16_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-(np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)/c0)
-
-# ================= PhySO_17 =================
-def PhySO_17_density(r, rho0, Rs, G):
+# ================= gNFW =================
+def gNFW_density(r, rho0, Rs, G):
     # Density
-    return -rho0 + rho0*rs0**2/(c0*r**2)
+    return rho0*(r/Rs + 1)**(gamma - 3)/(r/Rs)**gamma
 
-def PhySO_17_mass(r, rho0, Rs, G):
+def gNFW_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return -4/3*(np.pi*c0*r**3*rho0 - 3*np.pi*r*rho0*rs0**2)/c0
+    return -4*np.pi*Rs**gamma*r**(-gamma + 3)*rho0*hypergeometric((-gamma + 3, -gamma + 3), (-gamma + 4,), -r/Rs)/(gamma - 3)
 
-def PhySO_17_circular_velocity(r, rho0, Rs, G):
+def gNFW_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-(np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)/c0)
+    return 2*np.sqrt(-np.pi*G*Rs**gamma*r**(-gamma + 2)*rho0*hypergeometric((-gamma + 3, -gamma + 3), (-gamma + 4,), -r/Rs)/(gamma - 3))
 
-# ================= PhySO_18 =================
-def PhySO_18_density(r, rho0, Rs, G):
+# ================= Dekel_Zhao =================
+def Dekel_Zhao_density(r, rho0, Rs, G):
     # Density
-    return -c0*rho0*rs0**2/r**2 + rho0
+    return rho0*(np.sqrt(r/Rs) + 1)**(2*alpha - 7)/(r/Rs)**alpha
 
-def PhySO_18_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4*np.pi*c0*r*rho0*rs0**2 + 4/3*np.pi*r**3*rho0
-
-def PhySO_18_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-3*np.pi*G*c0*rho0*rs0**2 + np.pi*G*r**2*rho0)
-
-# ================= PhySO_19 =================
-def PhySO_19_density(r, rho0, Rs, G):
+# ================= pISO1 =================
+def pISO1_density(r, rho0, Rs, G):
     # Density
-    return 1.00000000000000*c0*rho0*rs0**2/r**2 - rho0
+    return 1/(r**2 + 1)
 
-def PhySO_19_mass(r, rho0, Rs, G):
+def pISO1_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 - 4/3*np.pi*r**3*rho0
+    return 4*np.pi*r - 4*np.pi*np.arctan(r)
 
-def PhySO_19_circular_velocity(r, rho0, Rs, G):
+def pISO1_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0*rho0*rs0**2 - np.pi*G*r**2*rho0)
+    return 2*np.sqrt((np.pi*G*r - np.pi*G*np.arctan(r))/r)
 
-# ================= PhySO_20 =================
-def PhySO_20_density(r, rho0, Rs, G):
-    # Density
-    return 1.00000000000000*c0*rho0*rs0**2/r**2 - rho0
+def pISO1_sigma2(r, rho0, Rs, G):
+    # Radial Velocity Dispersion
+    return 1/2*(np.pi**3*G*r**3 + np.pi**3*G*r - 4*(np.pi*G*r**3 + np.pi*G*r)*np.arctan(r)**2 - 8*(np.pi*G*r**2 + np.pi*G)*np.arctan(r))/r
 
-def PhySO_20_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 - 4/3*np.pi*r**3*rho0
-
-def PhySO_20_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0*rho0*rs0**2 - np.pi*G*r**2*rho0)
-
-# ================= PhySO_21 =================
-def PhySO_21_density(r, rho0, Rs, G):
-    # Density
-    return -c0*rho0*rs0**2/r**2 + rho0
-
-def PhySO_21_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4*np.pi*c0*r*rho0*rs0**2 + 4/3*np.pi*r**3*rho0
-
-def PhySO_21_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-3*np.pi*G*c0*rho0*rs0**2 + np.pi*G*r**2*rho0)
-
-# ================= PhySO_22 =================
-def PhySO_22_density(r, rho0, Rs, G):
-    # Density
-    return -(c0 - 1.00000000000000)*rho0*rs0**2/r**2 - rho0
-
-def PhySO_22_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*r**3*rho0 + 4*(np.pi - np.pi*c0)*r*rho0*rs0**2
-
-def PhySO_22_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*r**2*rho0 - 3*(np.pi*G*c0 - np.pi*G)*rho0*rs0**2)
-
-# ================= PhySO_23 =================
-def PhySO_23_density(r, rho0, Rs, G):
-    # Density
-    return -1.00000000000000*rho0*rs0**2/(r**2*(1.00000000000000*r/rs0 + 1.00000000000000))
-
-def PhySO_23_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4.0*np.pi*rho0*rs0**3*np.log((1.0*r + 1.0*rs0)/rs0)
-
-def PhySO_23_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2.0*np.sqrt(-np.pi*G*rho0*rs0**3*np.log((1.0*r + 1.0*rs0)/rs0)/r)
-
-def PhySO_23_surface_density(r, rho0, Rs, G):
+def pISO1_surface_density(r, rho0, Rs, G):
     # Surface Density
-    return -(np.pi*R**2*rho0*rs0**2 - np.pi*rho0*rs0**4 - 4*(R*rho0*rs0**2*np.arctan((R + rs0)/np.sqrt(R**2 - rs0**2)) - R*rho0*rs0**2*np.arctan(rs0/np.sqrt(R**2 - rs0**2)))*np.sqrt(R**2 - rs0**2))/(R**3 - R*rs0**2)
+    return np.pi/np.sqrt(R**2 + 1)
 
-# ================= PhySO_24 =================
-def PhySO_24_density(r, rho0, Rs, G):
+def pISO1_average_surface_density(r, rho0, Rs, G):
+    # Average Surface Density
+    return -2*(np.pi - np.pi*np.sqrt(R**2 + 1))/R**2
+
+# ================= Exponential =================
+def Exponential_density(r, rho0, Rs, G):
     # Density
-    return c0*rho0*rs0**2/r**2 - rho0
+    return rho0*e**(-r/Rs)
 
-def PhySO_24_mass(r, rho0, Rs, G):
+def Exponential_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 - 4/3*np.pi*r**3*rho0
+    return 4*(2*np.pi*Rs**3*e**(r/Rs) - 2*np.pi*Rs**3 - 2*np.pi*Rs**2*r - np.pi*Rs*r**2)*rho0*e**(-r/Rs)
 
-def PhySO_24_circular_velocity(r, rho0, Rs, G):
+def Exponential_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0*rho0*rs0**2 - np.pi*G*r**2*rho0)
+    return 2*np.sqrt((2*np.pi*G*Rs**3*e**(r/Rs) - 2*np.pi*G*Rs**3 - 2*np.pi*G*Rs**2*r - np.pi*G*Rs*r**2)*rho0/r)*e**(-1/2*r/Rs)
 
-# ================= PhySO_25 =================
-def PhySO_25_density(r, rho0, Rs, G):
-    # Density
-    return 1.00000000000000*c0*rho0*rs0**2/r**2 - rho0
-
-def PhySO_25_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 - 4/3*np.pi*r**3*rho0
-
-def PhySO_25_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0*rho0*rs0**2 - np.pi*G*r**2*rho0)
-
-# ================= PhySO_26 =================
-def PhySO_26_density(r, rho0, Rs, G):
-    # Density
-    return c0*(rho0 + 1.00000000000000*rho0*rs0**2/(c0*r**2))
-
-def PhySO_26_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*c0*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_26_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*c0*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_27 =================
-def PhySO_27_density(r, rho0, Rs, G):
-    # Density
-    return c0*rho0*rs0**2/r**2 - rho0
-
-def PhySO_27_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 - 4/3*np.pi*r**3*rho0
-
-def PhySO_27_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0*rho0*rs0**2 - np.pi*G*r**2*rho0)
-
-# ================= PhySO_28 =================
-def PhySO_28_density(r, rho0, Rs, G):
-    # Density
-    return -(c0*r + 1.00000000000000*rs0**2/r)*rho0/r
-
-def PhySO_28_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4/3*np.pi*c0*r**3*rho0 - 4*np.pi*r*rho0*rs0**2
-
-def PhySO_28_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(-np.pi*G*c0*r**2*rho0 - 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_29 =================
-def PhySO_29_density(r, rho0, Rs, G):
-    # Density
-    return (c0 + rs0**2/r**2)*rho0
-
-def PhySO_29_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*c0*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_29_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*c0*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_30 =================
-def PhySO_30_density(r, rho0, Rs, G):
-    # Density
-    return (c0 + 1.00000000000000*rs0**2/r**2)*rho0
-
-def PhySO_30_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*c0*r**3*rho0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_30_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*c0*r**2*rho0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_31 =================
-def PhySO_31_density(r, rho0, Rs, G):
-    # Density
-    return -rho0*rs0**2*e**(1.00000000000000*c0*r/rs0)/r**2
-
-def PhySO_31_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return (-4.0*np.pi*rho0*rs0**3*e**(1.0*c0*r/rs0) + 4.0*np.pi*rho0*rs0**3)/c0
-
-def PhySO_31_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt((-4.0*np.pi*G*rho0*rs0**3*e**(1.0*c0*r/rs0) + 4.0*np.pi*G*rho0*rs0**3)/(c0*r))
-
-# ================= PhySO_32 =================
-def PhySO_32_density(r, rho0, Rs, G):
-    # Density
-    return rho0*rs0**2*e**(-1.00000000000000*r/rs0)/r**2
-
-def PhySO_32_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4.0*np.pi*rho0*rs0**3*e**(-1.0*r/rs0) + 4.0*np.pi*rho0*rs0**3
-
-def PhySO_32_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt((-4.0*np.pi*G*rho0*rs0**3*e**(-1.0*r/rs0) + 4.0*np.pi*G*rho0*rs0**3)/r)
-
-def PhySO_32_sigma2(r, rho0, Rs, G):
+def Exponential_sigma2(r, rho0, Rs, G):
     # Radial Velocity Dispersion
-    return (-32.0*np.pi*scipy.special.gamma(-3, 2*r/rs0) + 4.0*np.pi*scipy.special.gamma(-3, r/rs0))*G*r**2*rho0*e**(1.0*r/rs0)
+    return 2*(4*np.pi*G*Rs**2*scipy.special.expi(-2*r/Rs)*e**(2*r/Rs) - 4*(2*np.pi*scipy.special.gamma(-1, 2*r/Rs) - np.pi*scipy.special.gamma(-1, r/Rs))*G*Rs**2*e**(2*r/Rs) - np.pi*G*Rs**2)*rho0*e**(-r/Rs)
 
-def PhySO_32_potential(r, rho0, Rs, G):
+def Exponential_potential(r, rho0, Rs, G):
     # Potential
-    return -(-4.0*np.pi*G*r*rho0*rs0**2*scipy.special.gamma(-1, r/rs0) + 4.0*np.pi*G*rho0*rs0**3)/r
+    return -4*(2*np.pi*G*Rs**2*r*scipy.special.expi(-r/Rs)*e**(r/Rs) - np.pi*G*Rs**2*r - 2*(np.pi*G*Rs**2*r*scipy.special.gamma(-1, r/Rs) - np.pi*G*Rs**3)*e**(r/Rs))*rho0*e**(-r/Rs)/r
 
-# ================= PhySO_33 =================
-def PhySO_33_density(r, rho0, Rs, G):
+# ================= Exponential1 =================
+def Exponential1_density(r, rho0, Rs, G):
     # Density
-    return -c0*rho0*rs0*np.log(1.00000000000000*r*e**(rs0/r)/(c0*rs0))/r
+    return 9.60000000000000*e**(-0.714285714285714*r)
 
-def PhySO_33_mass(r, rho0, Rs, G):
+def Exponential1_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return -2.0*np.pi*c0*r**2*rho0*rs0*np.log(1.0*r*e**(rs0/r)/(c0*rs0)) + 1.0*np.pi*c0*r**2*rho0*rs0 - 2.0*np.pi*c0*r*rho0*rs0**2
+    return (-210.7392*np.pi - 53.76*np.pi*r**2 - 150.528*np.pi*r + 210.7392*np.pi*e**(5/7*r))*e**(-5/7*r)
 
-def PhySO_33_circular_velocity(r, rho0, Rs, G):
+def Exponential1_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return np.sqrt(-2.0*np.pi*G*c0*r*rho0*rs0*np.log(1.0*r*e**(rs0/r)/(c0*rs0)) + 1.0*np.pi*G*c0*r*rho0*rs0 - 2.0*np.pi*G*c0*rho0*rs0**2)
+    return np.sqrt((-53.76*np.pi*G*r**2 - 150.528*np.pi*G*r + 210.7392*np.pi*G*e**(5/7*r) - 210.7392*np.pi*G)/r)*e**(-5/14*r)
 
-# ================= PhySO_34 =================
-def PhySO_34_density(r, rho0, Rs, G):
+def Exponential1_sigma2(r, rho0, Rs, G):
+    # Radial Velocity Dispersion
+    return (150.528*np.pi*G*scipy.special.expi(-10/7*r) - 37.632*np.pi*G*e**(-1.428571428571429*r) + (-301.056*np.pi*scipy.special.gamma(-1, 10/7*r) + 150.528*np.pi*scipy.special.gamma(-1, 5/7*r))*G)*e**(0.7142857142857143*r)
+
+def Exponential1_potential(r, rho0, Rs, G):
+    # Potential
+    return -(-75.264*np.pi*G*r + (210.7392*np.pi*G + (150.528*np.pi*G*scipy.special.expi(-5/7*r) - 150.528*np.pi*G*scipy.special.gamma(-1, 5/7*r))*r)*e**(5/7*r))*e**(-5/7*r)/r
+
+# ================= Exponential2 =================
+def Exponential2_density(r, rho0, Rs, G):
     # Density
-    return (c0 - rs0/r)*rho0*rs0/r
+    return rho0*e**(-r/(Rs_1 + Rs_2))
 
-def PhySO_34_mass(r, rho0, Rs, G):
+def Exponential2_mass(r, rho0, Rs, G):
     # Enclosed Mass
-    return 2*np.pi*c0*r**2*rho0*rs0 - 4*np.pi*r*rho0*rs0**2
+    return -4*(2*np.pi*Rs_1**3 + 6*np.pi*Rs_1**2*Rs_2 + 6*np.pi*Rs_1*Rs_2**2 + 2*np.pi*Rs_2**3 + (np.pi*Rs_1 + np.pi*Rs_2)*r**2 + 2*(np.pi*Rs_1**2 + 2*np.pi*Rs_1*Rs_2 + np.pi*Rs_2**2)*r - 2*(np.pi*Rs_1**3 + 3*np.pi*Rs_1**2*Rs_2 + 3*np.pi*Rs_1*Rs_2**2 + np.pi*Rs_2**3)*e**(r/(Rs_1 + Rs_2)))*rho0*e**(-r/(Rs_1 + Rs_2))
 
-def PhySO_34_circular_velocity(r, rho0, Rs, G):
+def Exponential2_circular_velocity(r, rho0, Rs, G):
     # Circular Velocity
-    return np.sqrt(2)*np.sqrt(np.pi*G*c0*r*rho0*rs0 - 2*np.pi*G*rho0*rs0**2)
+    return 2*np.sqrt(-(2*np.pi*G*Rs_1**3 + 6*np.pi*G*Rs_1**2*Rs_2 + 6*np.pi*G*Rs_1*Rs_2**2 + 2*np.pi*G*Rs_2**3 + (np.pi*G*Rs_1 + np.pi*G*Rs_2)*r**2 + 2*(np.pi*G*Rs_1**2 + 2*np.pi*G*Rs_1*Rs_2 + np.pi*G*Rs_2**2)*r - 2*(np.pi*G*Rs_1**3 + 3*np.pi*G*Rs_1**2*Rs_2 + 3*np.pi*G*Rs_1*Rs_2**2 + np.pi*G*Rs_2**3)*e**(r/(Rs_1 + Rs_2)))*rho0*e**(-r/(Rs_1 + Rs_2))/r)
 
-# ================= PhySO_35 =================
-def PhySO_35_density(r, rho0, Rs, G):
-    # Density
-    return -(rho0 - rho0*rs0/r)*rs0*(1/r - 1/rs0)
+def Exponential2_sigma2(r, rho0, Rs, G):
+    # Radial Velocity Dispersion
+    return -2*(np.pi*G*Rs_1**2 + 2*np.pi*G*Rs_1*Rs_2 + np.pi*G*Rs_2**2 - 4*(np.pi*G*Rs_1**2 + 2*np.pi*G*Rs_1*Rs_2 + np.pi*G*Rs_2**2)*scipy.special.expi(-2*r/(Rs_1 + Rs_2))*e**(2*r/(Rs_1 + Rs_2)) + 4*((2*np.pi*scipy.special.gamma(-1, 2*r/(Rs_1 + Rs_2)) - np.pi*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)))*G*Rs_1**2 + 2*(2*np.pi*scipy.special.gamma(-1, 2*r/(Rs_1 + Rs_2)) - np.pi*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)))*G*Rs_1*Rs_2 + (2*np.pi*scipy.special.gamma(-1, 2*r/(Rs_1 + Rs_2)) - np.pi*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)))*G*Rs_2**2)*e**(2*r/(Rs_1 + Rs_2)))*rho0*e**(-r/(Rs_1 + Rs_2))
 
-def PhySO_35_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*r**3*rho0 - 4*np.pi*r**2*rho0*rs0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_35_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*r**2*rho0 - 3*np.pi*G*r*rho0*rs0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_36 =================
-def PhySO_36_density(r, rho0, Rs, G):
-    # Density
-    return (np.sqrt(rho0) - 1.00000000000000*np.sqrt(rho0)*rs0/r)**2
-
-def PhySO_36_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*np.pi*r**3*rho0 - 4*np.pi*r**2*rho0*rs0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_36_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*r**2*rho0 - 3*np.pi*G*r*rho0*rs0 + 3*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_37 =================
-def PhySO_37_density(r, rho0, Rs, G):
-    # Density
-    return rho0*(1.00000000000000*c0*rs0/r - 1.00000000000000)**2
-
-def PhySO_37_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0**2*r*rho0*rs0**2 - 4*np.pi*c0*r**2*rho0*rs0 + 4/3*np.pi*r**3*rho0
-
-def PhySO_37_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*c0**2*rho0*rs0**2 - 3*np.pi*G*c0*r*rho0*rs0 + np.pi*G*r**2*rho0)
-
-# ================= PhySO_38 =================
-def PhySO_38_density(r, rho0, Rs, G):
-    # Density
-    return rho0*(rs0*e**(c0**2)/r - 1.00000000000000)**2
-
-def PhySO_38_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*r*rho0*rs0**2*e**(2*c0**2) - 4*np.pi*r**2*rho0*rs0*e**(c0**2) + 4/3*np.pi*r**3*rho0
-
-def PhySO_38_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(3*np.pi*G*rho0*rs0**2*e**(2*c0**2) - 3*np.pi*G*r*rho0*rs0*e**(c0**2) + np.pi*G*r**2*rho0)
-
-# ================= PhySO_39 =================
-def PhySO_39_density(r, rho0, Rs, G):
-    # Density
-    return -rho0*rs0*(1.00000000000000*rs0/r - 1.00000000000000)/r
-
-def PhySO_39_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 2*np.pi*r**2*rho0*rs0 - 4*np.pi*r*rho0*rs0**2
-
-def PhySO_39_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(np.pi*G*r*rho0*rs0 - 2*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_40 =================
-def PhySO_40_density(r, rho0, Rs, G):
-    # Density
-    return (c0*r - rs0/c0)**2*rho0/r**2
-
-def PhySO_40_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4/3*(np.pi*c0**4*r**3*rho0 - 3*np.pi*c0**2*r**2*rho0*rs0 + 3*np.pi*r*rho0*rs0**2)/c0**2
-
-def PhySO_40_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return 2/3*np.sqrt(3)*np.sqrt(np.pi*G*c0**4*r**2*rho0 - 3*np.pi*G*c0**2*r*rho0*rs0 + 3*np.pi*G*rho0*rs0**2)/c0
-
-# ================= PhySO_41 =================
-def PhySO_41_density(r, rho0, Rs, G):
-    # Density
-    return 1.00000000000000*rho0*rs0*(rs0/r - 1.00000000000000)/r
-
-def PhySO_41_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -2.0*np.pi*r**2*rho0*rs0 + 4.0*np.pi*r*rho0*rs0**2
-
-def PhySO_41_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(-2.0*np.pi*G*r*rho0*rs0 + 4.0*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_42 =================
-def PhySO_42_density(r, rho0, Rs, G):
-    # Density
-    return 1.00000000000000*rho0*rs0**2*(1/r - 1/rs0)/r
-
-def PhySO_42_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -2.0*np.pi*r**2*rho0*rs0 + 4.0*np.pi*r*rho0*rs0**2
-
-def PhySO_42_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(-2.0*np.pi*G*r*rho0*rs0 + 4.0*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_43 =================
-def PhySO_43_density(r, rho0, Rs, G):
-    # Density
-    return (c0*rho0*rs0/r - rho0)*c0*rs0/r
-
-def PhySO_43_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0**2*r*rho0*rs0**2 - 2*np.pi*c0*r**2*rho0*rs0
-
-def PhySO_43_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(2*np.pi*G*c0**2*rho0*rs0**2 - np.pi*G*c0*r*rho0*rs0)
-
-# ================= PhySO_44 =================
-def PhySO_44_density(r, rho0, Rs, G):
-    # Density
-    return -(c0 - rs0/(c0*r))*c0*rho0*rs0/r
-
-def PhySO_44_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -2*np.pi*c0**2*r**2*rho0*rs0 + 4*np.pi*r*rho0*rs0**2
-
-def PhySO_44_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(-np.pi*G*c0**2*r*rho0*rs0 + 2*np.pi*G*rho0*rs0**2)
-
-# ================= PhySO_45 =================
-def PhySO_45_density(r, rho0, Rs, G):
-    # Density
-    return (c0*(r + rs0)/r + 1.00000000000000)*rho0*rs0/r
-
-def PhySO_45_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 4*np.pi*c0*r*rho0*rs0**2 + 2*(np.pi + np.pi*c0)*r**2*rho0*rs0
-
-def PhySO_45_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(2*np.pi*G*c0*rho0*rs0**2 + (np.pi*G*c0 + np.pi*G)*r*rho0*rs0)
-
-# ================= PhySO_46 =================
-def PhySO_46_density(r, rho0, Rs, G):
-    # Density
-    return -1.00000000000000*rho0*rs0*(rs0/r - 1/c0)/r
-
-def PhySO_46_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return (-4.0*np.pi*c0*r*rho0*rs0**2 + 2.0*np.pi*r**2*rho0*rs0)/c0
-
-def PhySO_46_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt((-4.0*np.pi*G*c0*rho0*rs0**2 + 2.0*np.pi*G*r*rho0*rs0)/c0)
-
-# ================= PhySO_47 =================
-def PhySO_47_density(r, rho0, Rs, G):
-    # Density
-    return (c0 - 1.00000000000000*c0*rs0/r)*rho0*rs0/r
-
-def PhySO_47_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 2*np.pi*c0*r**2*rho0*rs0 - 4*np.pi*c0*r*rho0*rs0**2
-
-def PhySO_47_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(np.pi*G*c0*r*rho0*rs0 - 2*np.pi*G*c0*rho0*rs0**2)
-
-# ================= PhySO_48 =================
-def PhySO_48_density(r, rho0, Rs, G):
-    # Density
-    return -rho0*rs0**2*(c0/r - 1/rs0)/r
-
-def PhySO_48_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return -4*np.pi*c0*r*rho0*rs0**2 + 2*np.pi*r**2*rho0*rs0
-
-def PhySO_48_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(-2*np.pi*G*c0*rho0*rs0**2 + np.pi*G*r*rho0*rs0)
-
-# ================= PhySO_49 =================
-def PhySO_49_density(r, rho0, Rs, G):
-    # Density
-    return c0*(r - rs0)*rho0*rs0/r**2
-
-def PhySO_49_mass(r, rho0, Rs, G):
-    # Enclosed Mass
-    return 2*np.pi*c0*r**2*rho0*rs0 - 4*np.pi*c0*r*rho0*rs0**2
-
-def PhySO_49_circular_velocity(r, rho0, Rs, G):
-    # Circular Velocity
-    return np.sqrt(2)*np.sqrt(np.pi*G*c0*r*rho0*rs0 - 2*np.pi*G*c0*rho0*rs0**2)
+def Exponential2_potential(r, rho0, Rs, G):
+    # Potential
+    return -4*(2*(np.pi*G*Rs_1**2 + 2*np.pi*G*Rs_1*Rs_2 + np.pi*G*Rs_2**2)*r*scipy.special.expi(-r/(Rs_1 + Rs_2))*e**(r/(Rs_1 + Rs_2)) - (np.pi*G*Rs_1**2 + 2*np.pi*G*Rs_1*Rs_2 + np.pi*G*Rs_2**2)*r + 2*(np.pi*G*Rs_1**3 + 3*np.pi*G*Rs_1**2*Rs_2 + 3*np.pi*G*Rs_1*Rs_2**2 + np.pi*G*Rs_2**3 - (np.pi*G*Rs_1**2*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)) + 2*np.pi*G*Rs_1*Rs_2*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)) + np.pi*G*Rs_2**2*scipy.special.gamma(-1, r/(Rs_1 + Rs_2)))*r)*e**(r/(Rs_1 + Rs_2)))*rho0*e**(-r/(Rs_1 + Rs_2))/r
 
